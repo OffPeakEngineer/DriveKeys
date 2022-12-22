@@ -7,7 +7,7 @@
 
 BleKeyboard bleKeyboard(
   "DriveKeys",
-  "ShipLift",
+  "ShipLift LLC",
   100
 );
 
