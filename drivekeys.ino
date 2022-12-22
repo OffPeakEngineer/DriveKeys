@@ -42,7 +42,7 @@ void loop() {
   if(bleKeyboard.isConnected()) {
     stateChecker(BUTTON1, &button1State, KEY_LEFT_CTRL); // SW
     stateChecker(BUTTON2, &button2State, KEY_LEFT_ALT); // SE
-    stateChecker(BUTTON3, &button3State, KEY_LEFT_GUI); // NE
+    stateChecker(BUTTON3, &button3State, KEY_LEFT_SHIFT); // NE
 
     // Or, actual keys (for debugging etc)
     // stateChecker(BUTTON1, &button1State, 'a'); // SW
