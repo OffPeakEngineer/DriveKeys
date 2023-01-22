@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${default}",
+                "~/Arduino/libraries/**",
+                "~/.arduino15/packages/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64",
+            "browse": {
+              "path": [
+                "${default}",
+                "~/Arduino/libraries",
+                "~/.arduino15/packages"
+              ]
+            }
+        }
+    ],
+    "version": 4
+}
