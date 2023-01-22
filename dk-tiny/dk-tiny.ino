@@ -1,5 +1,7 @@
 #include <Wireling.h>
 #include <SX1505.h> // For interfacing with Joystick and Rotary Switch Wirelings
+#include <SPI.h>
+#include <TinyScreen.h>
 
 // Universal TinyCircuits Serial Monitor Config
 #if defined (ARDUINO_ARCH_AVR)
@@ -15,6 +17,8 @@
 
 TinyJoystick joystickA = TinyJoystick(); 
 TinyJoystick joystickB = TinyJoystick();
+TinyScreen display = TinyScreen(TinyScreenPlus);
+
 
 bool joyAU = false,
       joyAD = false,
@@ -40,6 +44,11 @@ void setup() {
 
   SerialComm.begin(9600);
   delay(500);
+
+  display.begin();
+  //setBrightness(brightness);//sets main current level, valid levels are 0-15
+  display.setBrightness(10);
+  display.setFlip(true);
 }
 
 void loop() {
@@ -52,6 +61,31 @@ void loop() {
   delay(100);
 }
 
+
+void writeText(String text){
+  display.clearScreen();
+  //setFont sets a font info header from font.h
+  //information for generating new fonts is included in font.h
+  display.setFont(thinPixel7_10ptFontInfo);
+  //getPrintWidth(character array);//get the pixel print width of a string
+  // int width=display.getPrintWidth("Example Text!");
+  //setCursor(x,y);//set text cursor position to (x,y)- in this example, the example string is centered
+  // display.setCursor(48-(width/2),10);
+  //fontColor(text color, background color);//sets text and background color
+  // display.fontColor(TS_8b_Green,TS_8b_Black);
+  // display.print("Example Text!");
+  // display.setCursor(15,25);
+  // display.fontColor(TS_8b_Blue,TS_8b_Black);
+  // display.print("More example Text!");
+  // display.setCursor(3,40);
+  // display.fontColor(TS_8b_Red,TS_8b_Black);
+  // display.print("(Does not wrap)");
+
+  display.setCursor(3,25);
+  display.fontColor(TS_8b_White,TS_8b_Black);
+  display.print(text);
+}
+
 void report() {
   if (joyAU != joystickA.up) {
     joyAU = joystickA.up;
@@ -59,6 +93,7 @@ void report() {
     SerialMon.println(joyAU);
     SerialComm.print("AU");
     SerialComm.println(joyAU);
+    writeText("A UP (towards connector)");
   }
   else if(joyAD != joystickA.down) {
     joyAD = joystickA.down;
@@ -66,6 +101,7 @@ void report() {
     SerialMon.println(joyAD);
     SerialComm.print("AD");
     SerialComm.println(joyAD);
+    writeText("A DOWN (away connector)");
   }
   else if(joyAL != joystickA.left) {
     joyAL = joystickA.left;
@@ -73,6 +109,7 @@ void report() {
     SerialMon.println(joyAL);
     SerialComm.print("AL");
     SerialComm.println(joyAL);
+    writeText("A LEFT (<--)");
   }
   else if(joyAR != joystickA.right) {
     joyAR = joystickA.right;
@@ -80,6 +117,7 @@ void report() {
     SerialMon.println(joyAR);
     SerialComm.print("AR");
     SerialComm.println(joyAR);
+    writeText("A RIGHT (-->)");
   }
   else if(joyAP != joystickA.press) {
     joyAP = joystickA.press;
@@ -87,6 +125,7 @@ void report() {
     SerialMon.println(joyAP);
     SerialComm.print("AP");
     SerialComm.println(joyAP);
+    writeText("A PRESSED (center)");
   }
 
   if (joyBU != joystickB.up) {
@@ -95,6 +134,7 @@ void report() {
     SerialMon.println(joyBU);
     SerialComm.print("BU");
     SerialComm.println(joyBU);
+    writeText("B UP (towards connector)");
   }
   else if(joyBD != joystickB.down) {
     joyBD = joystickB.down;
@@ -102,6 +142,7 @@ void report() {
     SerialMon.println(joyBD);
     SerialComm.print("BD");
     SerialComm.println(joyBD);
+    writeText("B DOWN (away connector)");
   }
   else if(joyBL != joystickB.left) {
     joyBL = joystickB.left;
@@ -109,6 +150,7 @@ void report() {
     SerialMon.println(joyBL);
     SerialComm.print("BL");
     SerialComm.println(joyBL);
+    writeText("B LEFT (<--)");
   }
   else if(joyBR != joystickB.right) {
     joyBR = joystickB.right;
@@ -116,6 +158,7 @@ void report() {
     SerialMon.println(joyBR);
     SerialComm.print("BR");
     SerialComm.println(joyBR);
+    writeText("B RIGHT (-->)");
   }
   else if(joyBP != joystickB.press) {
     joyBP = joystickB.press;
@@ -123,6 +166,7 @@ void report() {
     SerialMon.println(joyBP);
     SerialComm.print("BP");
     SerialComm.println(joyBP);
+    writeText("B PRESSED (center)");
   }
   
   SerialMon.flush();
