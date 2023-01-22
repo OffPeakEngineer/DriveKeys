@@ -14,6 +14,7 @@ BleKeyboard bleKeyboard(
   100
 );
 
+
 void setup() {
   SerialMon.begin(9600);
   delay(500);
@@ -39,42 +40,78 @@ void setup() {
   lc.setAlarmVoltage(3.8);
 }
 
-void stateChecker(int button, int *state, uint8_t key){
-  int currentButtonState = digitalRead(button);
-  if (currentButtonState != *state)
-    {
-        if (currentButtonState == LOW)
-        {
-            bleKeyboard.press(key);
-        }
-        else
-        {
-            bleKeyboard.release(key);
-        }
-    }
-    *state = currentButtonState;
+void buttonSender(String button, uint8_t key){
+  if (button[2] == '1')
+  {
+    bleKeyboard.press(key);
+    return;
+  }
+  
+  if (button[2] == '0')
+  {
+    bleKeyboard.release(key);
+    return;
+  }
 }
 
 void loop()
 {
-  if (SerialComm.available() <= 0) // Check if serial has an incoming command
+  if (SerialComm.available() <= 0) // Check if serial has an incoming button
   {
       return;
   }
 
-  SerialMon.println(SerialComm.readString());
+  String button = SerialComm.readStringUntil('\n'); // Read the button
+  SerialMon.println(button);
+  SerialMon.flush();
 
-  // if(bleKeyboard.isConnected()) {
-  //   bleKeyboard.setBatteryLevel(lc.cellPercent());
+  if(bleKeyboard.isConnected()) {
+    // bleKeyboard.setBatteryLevel(lc.cellPercent());
 
-  //   stateChecker(BUTTON1, &button1State, KEY_LEFT_CTRL); // SW
-  //   stateChecker(BUTTON2, &button2State, KEY_LEFT_ALT); // SE
-  //   stateChecker(BUTTON3, &button3State, KEY_LEFT_SHIFT); // NE
-
-  //   // Or, actual keys (for debugging etc)
-  //   // stateChecker(BUTTON1, &button1State, 'a'); // SW
-  //   // stateChecker(BUTTON2, &button2State, 'b'); // SE
-  //   // stateChecker(BUTTON3, &button3State, 'c'); // NE
-  //   delay(10);
-  // }
+    if (button[0] == 'A')
+    {
+      switch (button[1])
+      {
+      case 'U':
+        buttonSender(button, KEY_UP_ARROW);
+        break;
+      case 'D':
+        buttonSender(button, KEY_DOWN_ARROW);
+        break;
+      case 'L':
+        buttonSender(button, KEY_LEFT_ARROW);
+        break;
+      case 'R':
+        buttonSender(button, KEY_RIGHT_ARROW);
+        break;
+      case 'P':
+        buttonSender(button, KEY_RETURN);
+        break;
+      default:
+        break;
+      }
+    }
+    else if (button[0] == 'B') {
+      switch (button[1])
+      {
+      case 'U':
+        buttonSender(button, 'w');
+        break;
+      case 'D':
+        buttonSender(button, 's');
+        break;
+      case 'L':
+        buttonSender(button, 'a');
+        break;
+      case 'R':
+        buttonSender(button, 'd');
+        break;
+      case 'P':
+        buttonSender(button, 'q');
+        break;
+      default:
+        break;
+      }
+    }
+  }
 }
