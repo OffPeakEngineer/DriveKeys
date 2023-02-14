@@ -127,7 +127,7 @@ void loop() {
     blockInput = 1;
   }
 
-  if (checkButton(TAButton1) && currentFileNum) {
+  if ((joystickB.press || checkButton(TAButton1)) && currentFileNum) {
     if (doVideo)
       playVideo();
   }
@@ -561,8 +561,9 @@ void playVideo() {
       }
       debounce1 = 10;
     }
-    if (!debounce2 && checkButton(TAButton2)) {
-      break;
+    joystickB.getPosition();
+    if (!debounce2 && (checkButton(TAButton2) || joystickB.left)) {
+      break; // stop video playback
     }
     if (showBar) {
       currentFrame = (long)(vidFile.curPosition() / ((96 * 64 * 2) + (1024 * 2)));
