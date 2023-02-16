@@ -40,19 +40,30 @@ void setup() {
   lc.setAlarmVoltage(3.8);
 }
 
-void buttonSender(String button, uint8_t key){
+bool buttonSender(String button, uint8_t key, uint8_t key2 = 0){
   if (button[2] == '1')
   {
     bleKeyboard.press(key);
-    return;
+    if (key2 != 0)
+    {
+      bleKeyboard.press(key2);
+    }
+    return true;
   }
   
   if (button[2] == '0')
   {
     bleKeyboard.release(key);
-    return;
+    if (key2 != 0)
+    {
+      bleKeyboard.release(key2);
+    }
+    return false;
   }
 }
+
+bool toggler = false;
+bool flipper = false;
 
 void loop()
 {
@@ -79,7 +90,20 @@ void loop()
         buttonSender(button, KEY_DOWN_ARROW);
         break;
       case 'L':
-        buttonSender(button, KEY_LEFT_ARROW);
+        if (toggler)
+        {
+          flipper = buttonSender(button , 'b');
+        }
+        else
+        {
+          flipper = buttonSender(button , 'i');
+        }
+
+        if (!flipper)
+        {
+          toggler = !toggler;
+        }
+
         break;
       case 'R':
         buttonSender(button, KEY_RIGHT_ARROW);
@@ -101,7 +125,7 @@ void loop()
         buttonSender(button, 's');
         break;
       case 'L':
-        buttonSender(button, 'a');
+        buttonSender(button, KEY_LEFT_CTRL , 'z');
         break;
       case 'R':
         buttonSender(button, 'd');

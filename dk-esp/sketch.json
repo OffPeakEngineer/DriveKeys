@@ -1,0 +1,7 @@
+{
+	"cpu" : {
+		"fqbn" : "esp32:esp32:adafruit_feather_esp32_v2",
+		"name" : "Adafruit Feather ESP32 V2",
+		"port" : "serial:///dev/ttyACM0"
+	}
+}
