@@ -1,7 +1,7 @@
 {
 	"cpu" : {
-		"fqbn" : "TinyCircuits:samd:tinyscreen",
-		"name" : "TinyScreen+",
+		"fqbn" : "TinyCircuits:samd:tinyzero",
+		"name" : "TinyZero",
 		"port" : "serial:///dev/ttyACM0"
 	}
 }
