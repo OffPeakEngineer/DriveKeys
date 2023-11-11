@@ -1,14 +1,17 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include <BleKeyboard.h>
+#include <BleGamepad.h>
 #include <Adafruit_LC709203F.h>
+#define ARDUINOJSON_USE_DOUBLE 1
+#include <ArduinoJson.h>
+StaticJsonDocument<128> doc;
 
-#define SerialComm Serial1
-#define SerialMon Serial
+#define SerialComm Serial1 // Hardwire
+#define SerialMon Serial // USB Serial
 
 Adafruit_LC709203F lc;
 
-BleKeyboard bleKeyboard(
+BleGamepad bleGamepad(
   "DriveKeys",
   "ShipLift LLC",
   100
@@ -21,12 +24,13 @@ void setup() {
   SerialComm.begin(9600);
   delay(500);
 
-  bleKeyboard.begin();
+  bleGamepad.begin();
 
-  SerialMon.println("\nAdafruit LC709203F demo");
+  SerialMon.println("\nDriveKeys by: ShipLift LLC");
 
   if (!lc.begin()) {
     SerialMon.println(F("Couldnt find Adafruit LC709203F?\nMake sure a battery is plugged in!"));
+    return;
   }
 
   SerialMon.println(F("Found LC709203F"));
@@ -43,27 +47,25 @@ void setup() {
 bool buttonSender(String button, uint8_t key, uint8_t key2 = 0){
   if (button[2] == '1')
   {
-    bleKeyboard.press(key);
+    bleGamepad.press(key);
     if (key2 != 0)
     {
-      bleKeyboard.press(key2);
+      bleGamepad.press(key2);
     }
     return true;
   }
   
   if (button[2] == '0')
   {
-    bleKeyboard.release(key);
+    bleGamepad.release(key);
     if (key2 != 0)
     {
-      bleKeyboard.release(key2);
+      bleGamepad.release(key2);
     }
     return false;
   }
 }
 
-bool toggler = false;
-bool flipper = false;
 
 void loop()
 {
@@ -71,71 +73,57 @@ void loop()
   {
       return;
   }
+  
+  deserializeJson(doc, SerialComm);
 
-  String button = SerialComm.readStringUntil('\n'); // Read the button
-  SerialMon.println(button);
+  if (doc.isNull()) {
+    // SerialMon.println("Received nothing.");
+    return;
+  }
+  
+  double a, b, c;
+  a = (doc["a"].as<double>() * 1.0d);
+  b = (doc["b"].as<double>() * 1.0d);
+  c = (doc["c"].as<double>() * 1.0d);
+
+  a = abs(a);
+  b = abs(b);
+
+  a = a + 5;
+  b = b + 1;
+
+  if ( a > 30) {
+    a = 30;
+  }
+
+  if ( a < 0 ) {
+    a = 0;
+  }
+
+  if ( b > 30) {
+    b = 30;
+  }
+
+  if ( b < 0 ) {
+    b = 0;
+  }
+
+  double x = a / 30.0d; // Convert mag range to percent
+  double y = b / 30.0d;
+
+  // x = x * 2 
+
+  // x = (65534 * x) - 32767; // Normalize percent to joy range
+  // y = (65534 * y) - 32767;
+
+  x = (30000 * x); // Normalize percent to joy range
+  y = 30000 - (30000 * y);
+
+  // SerialMon.printf("%f, %f, %f\n", x, y);
+  SerialMon.printf("%f, %f\n", a, b);
   SerialMon.flush();
 
-  if(bleKeyboard.isConnected()) {
-    // bleKeyboard.setBatteryLevel(lc.cellPercent());
-
-    if (button[0] == 'A')
-    {
-      switch (button[1])
-      {
-      case 'U':
-        buttonSender(button, KEY_UP_ARROW);
-        break;
-      case 'D':
-        buttonSender(button, KEY_DOWN_ARROW);
-        break;
-      case 'L':
-        if (toggler)
-        {
-          flipper = buttonSender(button , 'b');
-        }
-        else
-        {
-          flipper = buttonSender(button , 'i');
-        }
-
-        if (!flipper)
-        {
-          toggler = !toggler;
-        }
-
-        break;
-      case 'R':
-        buttonSender(button, KEY_RIGHT_ARROW);
-        break;
-      case 'P':
-        buttonSender(button, KEY_RETURN);
-        break;
-      default:
-        break;
-      }
-    }
-    else if (button[0] == 'B') {
-      switch (button[1])
-      {
-      case 'U':
-        buttonSender(button, 'w');
-        break;
-      case 'D':
-        buttonSender(button, 's');
-        break;
-      case 'L':
-        buttonSender(button, KEY_LEFT_CTRL , 'z');
-        break;
-      case 'R':
-        buttonSender(button, 'd');
-        break;
-      case 'P':
-        buttonSender(button, 'q');
-        break;
-      default:
-        break;
-      }
-    }
+  if(bleGamepad.isConnected()) {
+    bleGamepad.setLeftThumb(x, y);
   }
 }

@@ -1,0 +1,5 @@
+{
+    "configuration": "BuildOption=normal",
+    "board": "TinyCircuits:samd:tinyzero",
+    "port": "/dev/ttyACM0"
+}
