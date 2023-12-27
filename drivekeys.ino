@@ -18,7 +18,7 @@
 **/
 
 // Aesthetics
-#define TAP_MS 200 // When a tap becomes a hold in milliseconds
+#define TAP_MS 20 // When a tap becomes a hold in milliseconds
 
 // MAX_KEYS must be larger than the highest IO pin on the board used for keymapping
 // In this case it's digital pin 13. 20 > 13, so MAX_KEYS of 20 is fine.
@@ -35,7 +35,7 @@ static bool STATE_MAP[MAX_KEYS];
 #define KEY_C  11
 #define KEY_D  10
 #define KEY_E  9
-#define KEY_F  8
+#define KEY_F  6
 
 void setup() {
   // Assign each key to produce a character output.
@@ -71,39 +71,38 @@ void setup() {
   pinMode(KEY_E, INPUT_PULLUP);
   pinMode(KEY_F, INPUT_PULLUP);
 
-
-
-  // Keyboard.begin();
+  Keyboard.begin();
   Serial.begin(9600);
-  delay(5000);
+  // delay(5000);
   Serial.println("Begin!");
 }
 
-void stateCheck(int incomingKey, char* output) {
+void stateCheck(int incomingKey) {
   bool incoming = digitalRead(incomingKey);
 
   if (incoming == STATE_MAP[incomingKey]) {
     return;
   }
 
-  strcat(output, &KEY_MAP[incomingKey]);
-
+  if (incoming == LOW) {
+    Serial.print("X ");
+    Serial.println(KEY_MAP[incomingKey]);
+    Keyboard.press(KEY_MAP[incomingKey]);
+  } else {
+    Serial.print("O ");
+    Serial.println(KEY_MAP[incomingKey]);
+    Keyboard.release(KEY_MAP[incomingKey]);
+  }
+    
   STATE_MAP[incomingKey] = incoming;
 }
 
 void loop() {
-  char output[12] = {'\0'};
-  stateCheck(KEY_A, output);
-  stateCheck(KEY_B, output);
-  stateCheck(KEY_C, output);
-  stateCheck(KEY_D, output);
-  stateCheck(KEY_E, output);
-  stateCheck(KEY_F, output);
-
-  Serial.println(output);
+  stateCheck(KEY_A);
+  stateCheck(KEY_B);
+  stateCheck(KEY_C);
+  stateCheck(KEY_D);
+  stateCheck(KEY_E);
+  stateCheck(KEY_F);
   delay(TAP_MS);
-
-  // Keyboard.print("You pressed the button ");
-  // Keyboard.print(counter);
-  // Keyboard.println(" times.");
 }
