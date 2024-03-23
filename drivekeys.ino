@@ -3,17 +3,20 @@
 
 
 /**
-*      DriveKey Physical Layout
+*      NoMouse Physical Layout
 *
-*    +---------------------+
-*    | A | B | C |         |
-*    | D | E |             |
-*    | F |     OOOO        |
-*    |---+    OOOOOO       |
-*    |       OOOOOOOO      |
-*    |        OOOOOO       |
-*    |         OOOO        |
-*    |...
+*     +-------------------+
+*     |  | A |     | B |  |
+*     |  | C |     | D |  |
+*     |                   |
+*    F|                   |
+*    E|                   |H
+*     |                   |G
+*     |                   |
+*     |                   |
+*     |                   |
+*     |                   |
+*     +-------------------+
 *
 **/
 
@@ -30,12 +33,14 @@ static bool STATE_MAP[MAX_KEYS];
 
 // Maps the diagram from above to the physical/electrically wired pins.
 // This names will be used extensively throughtout this code. Know them.
-#define KEY_A  13
-#define KEY_B  12
-#define KEY_C  11
-#define KEY_D  10
-#define KEY_E  9
-#define KEY_F  6
+#define KEY_A  2
+#define KEY_B  3
+#define KEY_C  4
+#define KEY_D  5
+#define KEY_E  6
+#define KEY_F  7
+#define KEY_G  8
+#define KEY_H  9
 
 void setup() {
   // Assign each key to produce a character output.
@@ -45,6 +50,8 @@ void setup() {
   KEY_MAP[KEY_D] = 'd';
   KEY_MAP[KEY_E] = 'e';
   KEY_MAP[KEY_F] = 'f';
+  KEY_MAP[KEY_G] = 'g';
+  KEY_MAP[KEY_H] = 'h';
 
   // Set the initial state of all keys
   // This map will be used to:
@@ -62,6 +69,8 @@ void setup() {
   STATE_MAP[KEY_D] = HIGH;
   STATE_MAP[KEY_E] = HIGH;
   STATE_MAP[KEY_F] = HIGH;
+  STATE_MAP[KEY_G] = HIGH;
+  STATE_MAP[KEY_H] = HIGH;
 
   // Since the design has no resistors, we use INPUT_PULLUP for us, HIGH means no-pressing
   pinMode(KEY_A, INPUT_PULLUP);
@@ -70,6 +79,8 @@ void setup() {
   pinMode(KEY_D, INPUT_PULLUP);
   pinMode(KEY_E, INPUT_PULLUP);
   pinMode(KEY_F, INPUT_PULLUP);
+  pinMode(KEY_G, INPUT_PULLUP);
+  pinMode(KEY_H, INPUT_PULLUP);
 
   Keyboard.begin();
   Serial.begin(9600);
@@ -104,5 +115,7 @@ void loop() {
   stateCheck(KEY_D);
   stateCheck(KEY_E);
   stateCheck(KEY_F);
+  stateCheck(KEY_G);
+  stateCheck(KEY_H);
   delay(TAP_MS);
 }
