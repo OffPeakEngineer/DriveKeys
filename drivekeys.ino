@@ -1,3 +1,7 @@
+//
+//
+
+
 #include <Arduino.h>
 #include <BleKeyboard.h>
 #include <Adafruit_NeoPixel.h>
@@ -14,6 +18,18 @@
 int X ;           // X-coordinate
 int Y ;           // Y-coordinate
 
+struct KeyBinding {
+  uint8_t keycode; // HID keycode (e.g., KEY_RETURN, 'A', etc.)
+  bool isPressed; 
+  uint16_t touchIDs[140];
+};
+
+KeyBinding keyBindings[] = {
+  { 'A', false, {256, 384, 400}},
+  { 'B', false, {}},
+  { 'C', false, {}},
+};
+
 Adafruit_NeoPixel pixels(NUMPIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 Adafruit_MPR121 cap = Adafruit_MPR121();
 BleKeyboard bleKeyboard;
@@ -23,6 +39,7 @@ BleKeyboard bleKeyboard;
 uint16_t lasttouched = 0;
 uint16_t currtouched = 0;
 
+// Tracks the millis that a point was touched.
 unsigned long keyMatrix[10][14] = {
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -40,6 +57,8 @@ int getX(uint16_t touched);
 int getY(uint16_t touched);
 void drawKeyMatrix(unsigned long keyMatrix[10][14]);
 void yield(int delay);
+void printTouchLine(uint16_t touched);
+bool isKeyPressed(char key);
 
 void setup() {
   Wire.begin();
@@ -85,13 +104,18 @@ void loop() {
     Serial.print("[2J"); // Clear screen
   }
 
-  // keyframe
-  if (millis() > screenBlank + 10000) {
-    screenBlank = millis();
-    Serial.write(27);  // ESC
-    Serial.print("[2J"); // Clear screen
+  
+  {// Keyframe, i.e. full redraw (because otherwise we're just drawing over
+   // the last characters or 'overwrite mode' (the opposite of 'insert mode').
+   // Which is normally great, because it prevents a flicker, but the frame will
+   // eventually get dirty and need a full redraw. Hence the blank.
+      if (millis() > screenBlank + 10000) {
+      screenBlank = millis();
+      Serial.write(27);  // ESC
+      Serial.print("[2J"); // Clear screen
 
-    String missing = "(__,__)"; // Good time to reset missing too
+      String missing = "(__,__)"; // Good time to reset missing too
+    }
   }
   
 
@@ -102,20 +126,23 @@ void loop() {
   Serial.write(27); Serial.print("[?25l");  // ESC[?25l — hide cursor
   Serial.write(27); Serial.print("[H"); // Move cursor to home (no clear)
   
-  // Actually draws the last frame
-  drawKeyMatrix(keyMatrix);
-  // Above:      "  +-------------------------------+
-  Serial.println("                  Missing: " + missing);
-  Serial.println("  Event Log:");
-  for (int i = 0; i < msgHistLen; i++) {
-    if (msgNm-i < 0) {
-      Serial.println("");
-      continue;
+  {// Draws the last frame, we calculate one frame behind.
+    // or, every frame drawn was processed durring the last frames display.
+    drawKeyMatrix(keyMatrix);
+    // Above:      "  +-------------------------------+
+    Serial.println("                  Missing: " + missing);
+    Serial.println("  Event Log:");
+    for (int i = 0; i < msgHistLen; i++) {
+      if (msgNm-i < 0) {
+        Serial.println("");
+        continue;
+      }
+      Serial.println("   " + eventLog[(msgNm-i) % msgHistLen] + "      ");
     }
-    Serial.println("   " + eventLog[(msgNm-i) % msgHistLen]);
+    Serial.println("");
+    Serial.println("               Touch ID: #" + String(currtouched)+"   ");
+    Serial.print("          "); printTouchLine(currtouched);
   }
-  Serial.println("");
-  Serial.println("                           Touch ID: #"+String(currtouched));
 
   // Continually check the touchpad until a difference is found.
   unsigned long framecap = millis();
@@ -155,6 +182,7 @@ void loop() {
           msgNm++;
           eventLog[msgNm % msgHistLen] = String(msgNm) + ". (" + String(x) + "," + String(y) + ") --> released.";
           if(bleKeyboard.isConnected()) {
+            if (getKeyForTouchIDisKeyPressed) 
               // bleKeyboard.press(key);
           }
         }
@@ -184,6 +212,34 @@ void loop() {
 void yield(int ms) {
   yield();
   delay(ms);
+}
+
+
+bool isKeyPressed(char key) {
+  for (size_t i = 0; i < sizeof(keyBindings) / sizeof(KeyBinding); i++) {
+    if (keyBindings[i].keycode == key) {
+      return keyBindings[i].isPressed;
+    }
+  }
+  return false; // Not found or not pressed
+}
+
+
+char getKeyForTouchID(uint16_t id) {
+  for (size_t i = 0; i < sizeof(keyBindings) / sizeof(KeyBinding); i++) {
+    const KeyBinding &binding = keyBindings[i];
+
+    for (size_t j = 0; j < MAX_TOUCH_IDS; j++) {
+      uint16_t tid = binding.touchIDs[j];
+
+       if (tid == 0xFFFF) break;
+
+      if (tid == id) {
+        return binding.keycode;
+      }
+    }
+  }
+  return '\0'; // No match
 }
 
 void drawKeyMatrix(unsigned long keyMatrix[10][14]) {
@@ -216,6 +272,17 @@ void drawKeyMatrix(unsigned long keyMatrix[10][14]) {
   }
   Serial.println(F("  +-----------------------------------+"));
   Serial.write(27); Serial.print("[?25l");  // ESC[?25l — hide cursor
+}
+
+void printTouchLine(uint16_t touched) {
+  for (int i = 0; i < 12; i++) {
+    if (touched & (1 << i)) {
+      Serial.print("⊞");
+    } else {
+      Serial.print("□");
+    }
+  }
+  Serial.println(); // Move to the next line
 }
 
 // int 0 - 9
